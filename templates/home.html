@@ -1,0 +1,31 @@
+{% extends 'layout.html' %}
+{% block change.html %}
+    <div class="col-md-8">
+            <div class="article_list">
+                {% for article in article_list %}
+                    <div class="article">
+                        <p class="article-title"><a href="/blog/article/{{ article.user.username }}/{{ article.pk }}">{{ article.title }}</a></p>
+                    <div class="media" >
+                        <div class="media-left">
+                            <a href="#">
+                                <img class="media-object" src="/media/{{ article.user.avatar }}" alt="..." style="width:70px;height: 70px;">
+                            </a>
+                        </div>
+                        <div class="media-body">
+                            <p>{{ article.desc }}</p>
+                        </div>
+                    </div>
+                    <div class="avatar-foot" style="margin-top: 10px">
+                        <span><a href="/blog/{{ article.user.username }}">{{ article.user.username }}</a></span>&nbsp;&nbsp;&nbsp;发布于
+                        <span>{{ article.create_time|date:'Y-m-d H:i-s' }}</span>&nbsp;&nbsp;&nbsp;
+                        <span class="glyphicon glyphicon-comment">评论({{ article.comment_count }})</span>&nbsp;&nbsp;&nbsp;
+                        <span class="glyphicon glyphicon-thumbs-up">点赞({{ article.up_count }})</span>&nbsp;&nbsp;&nbsp;
+                        <span class="glyphicon glyphicon-thumbs-down">踩({{ article.down_count }})</span>
+                    </div>
+                        <hr>
+                    </div>
+                {% endfor %}
+
+            </div>
+        </div>
+{% endblock %}

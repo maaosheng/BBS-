@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="/static/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <title>Title</title>
+    <style>
+        .help-block{
+            color:red;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="row">
+        <form class="col-md-6 col-md-offset-3 login-form"  action="resgister" method="post"  novalidate>
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="id_username" class="col-md-2">{{ obj.username.label }}</label>
+                <div >
+                    {{ obj.username }}
+                    <span class="help-block">{{ obj.username.errors.0 }}</span>
+                </div>
+
+            </div>
+            <div class="form-group">
+                <label for="id_password" class="col-md-2">{{ obj.password.label }}</label>
+                <div >
+                    {{ obj.password }}
+                    <span class="help-block">{{ obj.password.errors.0 }}</span>
+                </div>
+
+            </div>
+            <div class="form-group">
+                <label for="id_re_password" class="col-md-2">{{ obj.re_password.label }}</label>
+                <div >
+                    {{ obj.re_password }}
+                    <span class="help-block">{{ obj.re_password.errors.0 }}</span>
+                </div>
+
+            </div>
+            <div class="form-group">
+                <label for="id_email" class="col-md-2">{{ obj.email.label }}</label>
+                <div >
+                    {{ obj.email}}
+                    <span class="help-block">{{ obj.email.errors.0 }}</span>
+                </div>
+
+            </div>
+
+            <div>
+                <label for="file"><img src="/static/img/default.png" alt="" id="img" style="width:40px;height: 40px"></label>
+                <input type="file" id="file" style="display: none" >
+            </div>
+            <div>
+                <input type="button" id="ajax_send" value="提交">
+{#                <input type="submit" id="ajax_send" value="提交">#}
+            </div>
+            <div>
+                <div id="ceshi" >清空</div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="/static/jquery-3.3.1.js"></script>
+<script src="/static/bootstrap/js/bootstrap.min.js"></script>
+<script>
+    $('input').focus(function () {
+        $(this).next().text("")
+    });
+    $('#ceshi').on('click',function () {
+       $('input').next('span').text('')
+    });
+    $('#file').on('change',function () {
+        var fileReader = new FileReader();
+        var  filepath = $(this)[0].files[0];
+        fileReader.readAsDataURL(filepath);
+        fileReader.onload=function () {
+            $('#img').attr('src',fileReader.result)
+        }
+     });
+
+    $('#ajax_send').on('click',function (){//把表单中所有数据提交到后台
+        var formData = new FormData();
+        formData.append("username", $("#id_username").val());
+        formData.append("password", $("#id_password").val());
+        formData.append("re_password", $("#id_re_password").val());
+        formData.append("email", $("#id_email").val());
+        formData.append("avatar", $("#file")[0].files[0]);
+        formData.append("csrfmiddlewaretoken", $("[name='csrfmiddlewaretoken']").val());
+
+        $.ajax({
+            url:'/resgister/',
+            type:'POST',
+            dataType:'json',
+            contentType:false,
+            processData:false,
+            data:formData,
+            success:function (data) {
+                if (data.status){
+                    location.href=data.msg
+                }else{
+                    console.log(data.msg);
+                    $.each(data.msg,function (v,g) {
+                        console.log(v,g);
+                        $('#id_'+v+'').next().text(g)
+
+                    })
+                }
+
+
+            }
+        })
+    });
+
+    $('#id_username').on('input',function () {
+        var user_content = $('#id_username').val();
+        if (user_content){
+            $.ajax({
+                url:'/test_user/',
+                type:'POST',
+                dataType:'JSON',
+                data:{
+                    name:user_content,
+                    csrfmiddlewaretoken: $("[name='csrfmiddlewaretoken']").val(),
+                },
+                success:function (data) {
+                    if(data.status){
+
+                    }else{
+                        $('#id_username').next('span').text(data.msg);
+                    }
+                }
+            })
+        }
+    })
+
+
+
+
+</script>
+</body>
+</html>

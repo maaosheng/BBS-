@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="/static/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/mycss.css">
+    <link rel="stylesheet" href="/media/theme/{{ blog.theme }}">
+    {% block css %}{% endblock %}
+    <title>{{ blog.title }}</title>
+</head>
+<body>
+<div class="header">
+    <p>{{ blog.title }}</p>
+</div>
+<div class="container">
+    <div class="row">
+        <!--左侧菜单-->
+        <div class="col-md-2">
+            <div class="panel panel-primary">
+                <div class="panel-heading">文章分类</div>
+                <div class="panel-body">
+
+                        {% for foo in article_category %}
+                            <p><a href="/blog/category/{{ username }}/{{ foo.title }}">{{ foo.title }}({{ foo.c }})</a></p>
+                        {% endfor %}
+
+                </div>
+            </div>
+            <hr>
+            <div class="panel panel-info">
+                <div class="panel-heading">技术分类</div>
+                <div class="panel-body">
+                    {% for foo in ret_tag %}
+                        <p><a href="/blog/category/{{ username }}/{{ foo.title }}">{{ foo.title }}({{ foo.c }})</a></p>
+                    {% endfor %}
+                </div>
+            </div>
+            <hr>
+            <div class="panel panel-info">
+                <div class="panel-heading">日期分类</div>
+                <div class="panel-body">
+
+{#                        {% for foo in article_date %}#}
+{#                            <p><a href="/blog/category/{{ username }}/{{ foo.achieve}}">{{ foo.achieve }}({{ foo.c }})</a></p>#}
+{#                        {% endfor %}#}
+
+                </div>
+            </div>
+        </div>
+
+        {% block change.html %}{% endblock %}
+
+        <div class="col-md-2">
+            <div class="panel panel-primary">
+                <div class="panel-heading">右侧广告位一</div>
+                <div class="panel-body"><a href="/index/">返回主页</a></div>
+            </div>
+            <div class="panel panel-info">
+                <div class="panel-heading">左侧广告位二</div>
+                <div class="panel-body"><a href="/blog/{{ username }}">返回个人首页</a></div>
+            </div>
+        </div>
+
+    </div>
+</div>
+<script src="/static/jquery-3.3.1.js"></script>
+<script src="/static/bootstrap/js/bootstrap.min.js"></script>
+{% block js %}{% endblock %}
+</body>
+</html>

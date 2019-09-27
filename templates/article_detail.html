@@ -1,0 +1,346 @@
+{% extends 'layout.html' %}
+{% block css %}
+    <style>
+        #div_digg {
+            float: right;
+            margin-bottom: 10px;
+            margin-right: 30px;
+            font-size: 12px;
+            width: 125px;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .sss {
+            float: left;
+            width: 46px;
+            height: 52px;
+            background: url('/media/img/upup.gif') no-repeat;
+            text-align: center;
+            cursor: pointer;
+            margin-top: 2px;
+            padding-top: 5px;
+        }
+
+        .ddd {
+            float: right;
+            margin-left: 20px;
+            width: 46px;
+            height: 52px;
+            background: url('/media/img/downdown.gif') no-repeat;
+            text-align: center;
+            cursor: pointer;
+            margin-top: 2px;
+            padding-top: 5px;
+        }
+
+        .clear {
+            clear: both;
+        }
+
+        .diggword {
+            margin-top: 5px;
+            margin-left: 0;
+            font-size: 12px;
+            color: gray;
+        }
+
+        input.author {
+            background-position: 3px -3px;
+            background-image: url('/media/img/icon_form.gif');
+            background-repeat: no-repeat;
+            border: 1px solid #ccc;
+            padding: 4px 4px 4px 30px;
+            width: 300px;
+            font-size: 13px;
+        }
+
+        .body_content {
+            margin-top: 10px;
+        }
+
+        .pull-right a {
+            display: inline-block;
+            padding: 0 5px;
+        }
+
+        .parent_content {
+            margin-left: -10px;
+        }
+
+        #parent-extra {
+            margin-left: 20px;
+        }
+    </style>
+{% endblock %}
+{% block  change.html %}
+    <div class="col-md-8">
+        {% csrf_token %}
+        <div style="max-width: 80%;margin: 0 auto">
+            <p class="detail_title" style="font-size: 20px;font-weight: bold">{{ article.title }}</p>
+            {{ article_show }}
+        </div>
+        <div class="error_detail" style="color:red;margin-left: 300px"></div>
+        <div class="clearfix" style="max-width: 80%;margin: 0 auto">
+            <div id="div_digg">
+                <div class="sss action">
+                    <span class="diggnum" id="digg_count">{{ article.up_count }}</span>
+                </div>
+                <div class="ddd action">
+                    <span class="burynum" id="bury_count">{{ article.down_count }}</span>
+                </div>
+                <div class="clear"></div>
+                <div class="diggword" id="digg_tips"></div>
+            </div>
+        </div>
+        <div article_id="{{ article.pk }}" username="{{ request.user.username }}" article_name="{{ article.user.username }}" class="other"></div>
+        <div class="content" style="max-width: 80%;margin: 0 auto">
+            <p>树形评论</p>
+            <div class="extra_all">
+
+            </div>
+            <p>评论列表</p>
+            <ul class="list-group">
+                {% for foo in  content_list %}
+                    <li class="list-group-item">
+                        <div class="title_content">
+                            #{{ forloop.counter }}楼 &nbsp;
+                            <a href=""><span style="color: #2b542c">{{ foo.create_time|date:"Y-m-d" }}</span></a>&nbsp;
+                            <a href=""><span>{{ foo.user.username }}</span></a>
+                            {% if request.user.username == foo.user.username %}
+                                <span class="pull-right"><a href="">删除</a></span>
+                                <span class="pull-right"><a href="">修改</a></span>
+                            {% else %}
+                                <span class="pull-right btn-replay" user="{{ foo.user.username }} "
+                                      article_id="{{ foo.pk }}"><a href="">回复</a></span>
+                            {% endif %}
+                        </div>
+                        <div class="body_content">
+                            {% if foo.parent_comment %}
+                                <div class="well parent_content">
+                                    <span>{{ foo.parent_comment.user.username }}:{{ foo.parent_comment.content }}</span>
+                                </div>
+                            {% endif %}
+                            {{ foo.content }}
+                        </div>
+                    </li>
+                {% endfor %}
+                <div class="comment_list"></div>
+
+            </ul>
+        </div>
+        <div class="div_comment" style="max-width: 80%;margin: 0 auto">
+            {% if request.user.username %}
+                <p>
+                    昵称：<input type="text" id="tbCommentAuthor" class="author" disabled="disabled" size="50"
+                              value="{{ request.user.username }}">
+                </p>
+                <p>发表评论</p>
+                <textarea name="" id="" cols="50" rows="15" class="content_text"></textarea>
+                <span style="color:red"></span>
+
+                <p>
+                    <button class="btn-success comment-btn">发表评论</button>
+                </p>
+            {% else %}
+                <p><a href="/login/" id="login">登录</a></p>
+            {% endif %}
+        </div>
+
+    </div>
+{% endblock %}
+{% block js %}
+    <script>
+        var parent_comment = "";
+
+        $('#div_digg .action').on('click', function () {
+            $('.diggword .a').text("");
+            $('.diggword').text("");
+            if ($('.other').attr("username")) {
+                is_up = $(this).children('span').hasClass('diggnum');
+                $.ajax({
+                    url: '/blog/article_up_down/',
+                    type: 'POST',
+                    dataType: 'JSON',
+                    data: {
+                        csrfmiddlewaretoken: $('[name="csrfmiddlewaretoken"]').val(),
+                        is_up: is_up,
+                        user: "{{ request.user.username }}",
+                        article_id: "{{ article.pk }}"
+                    },
+                    success: function (data) {
+                        if (data.statu) {
+                            if (is_up) {
+                                //parserInt为数据类型转换为int
+                                var num = parseInt($('.diggnum').text()) + 1;
+                                $('.diggnum').text(num)
+                            } else {
+                                var num1 = parseInt($('.diggnum').text()) + 1;
+                                $('.burynum').text(num1)
+                            }
+                        } else {
+                            if (data.msg) {
+                                $('.diggword').text('你已经点过赞了')
+                            } else {
+                                $('.diggword').text('你已经踩过了')
+                            }
+                            var b = function () {
+                                $('.diggword').text("")
+                            };
+                            setTimeout(b, 3000)
+                        }
+                    }
+
+                })
+            } else {
+                var t = document.createElement('a');
+                t.href = '/login/';
+                t.class = "a";
+                t.innerText = '登陆';
+                $('.diggword').text('请先');
+                $('.diggword').append(t)
+
+            }
+        });
+
+        {#------------评论-------#}
+        $('.comment-btn').click(function () {
+            var comment1 = $('.content_text').val();
+            if (parent_comment) {
+                var index = comment1.indexOf('\n');
+                comment1 = comment1.slice(index + 1);
+            }
+            $.ajax({
+                url: '/blog/comment/',
+                type: 'POST',
+                dataType: 'JSON',
+                data: {
+                    csrfmiddlewaretoken: $('[name="csrfmiddlewaretoken"]').val(),
+                    article_id: $('.other').attr('article_id'),
+                    comment: comment1,
+                    parent_comment: parent_comment
+                },
+                success: function (data) {
+                    if (data.statu) {
+                        content = data.comment;
+                        create_time = data.create_date;
+                        parent_content = data.parent_content;
+                        parent_username = data.parent_username;
+                        username = data.username;
+                        if (parent_comment) {
+                            var ss = "<li class=\"list-group-item\">\n" +
+                                "                        <div class=\"title_content\">\n" +
+                                "                            #{{ forloop.counter }}楼 &nbsp;\n" +
+                                "                            <a href=\"\"><span style=\"color: #2b542c\">" + create_time + "</span></a>&nbsp;\n" +
+                                "                            <a href=\"\"><span>" + username + "</span></a>\n" +
+                                "                            {% if request.user.username == foo.user.username %}\n"+
+                                    "                                <span class=\"pull-right\"><a href=\"\">删除</a></span>\n"
+                                    +
+                                    "                                <span class=\"pull-right\"><a href=\"\">修改</a></span>\n"
+                                    +
+                                    "                            {% else %}\n"+
+                                    "                                <span class=\"pull-right btn-replay\" user=\""
+                                    +username+"} \"\n"
+                                    +
+                                    "                                      article_id=\"{{ foo.pk }}\"><a href=\"\">回复</a></span>\n"
+                                    +
+                                    "                            {% endif %}\n" +
+                                "                        </div>\n" +
+                                "                        <div class=\"body_content\">\n" +
+                                "                            \n" +
+                                "                                <div class=\"well parent_content\">\n" +
+                                "                                    <span>" + parent_username + ":" + parent_content + "</span>\n"
+                                +
+                                "                                </div>\n" +
+                                "                            " +
+                                "                           " + content + "\n" +
+                                "\n" +
+                                "                        </div>\n" +
+                                "\n" +
+                                "                    </li>"
+                        } else {
+                            var ss = "<li class=\"list-group-item\">\n" +
+                                "                        <div class=\"title_content\">\n" +
+                                "                            {{ forloop.counter }} \n" +
+                                "                            <a href=\"\"><span style=\"color: #2b542c\">" + create_time + "</span></a>&nbsp;\n" +
+                                "                            <a href=\"\"><span>" + username + "</span></a>\n" +
+                                "                            {% if request.user.username == foo.user.username %}\n"+
+                                    "                                <span class=\"pull-right\"><a href=\"\">删除</a></span>\n"
+                                    +
+                                    "                                <span class=\"pull-right\"><a href=\"\">修改</a></span>\n"
+                                    +
+                                    "                            {% else %}\n"+
+                                    "                                <span class=\"pull-right\"><a href=\"\">回复</a></span>\n"
+                                    +
+                                    "                            {% endif %}\n" +
+                                "                        </div>\n" +
+                                "                        <div class=\"body_content\">\n" +
+                                "                            " + content + "\n" +
+                                "\n" +
+                                "                        </div>\n" +
+                                "\n" +
+                                "                    </li>";
+                        }
+                        $('.comment_list').append(ss);
+                        $('.content_text').val("");
+                    } else {
+                        $('.content_text').next('span').text(data.msg)
+                    }
+                    $.each(data.article_all, function (index, extra_comment) {
+                        console.log(index, extra_comment);
+                        content = extra_comment.content;
+                        pk = extra_comment.nid;
+                        parent_pk = extra_comment.parent_comment;
+                        var ss = "<div class=\"father" + pk + "\" id=\"parent-extra\">" + content + "</div>";
+                        if (parent_pk) {
+                            $('.father' + parent_pk + '').append(ss)
+                        } else {
+                            $('.extra_all').append(ss)
+                        }
+
+                    })
+                }
+
+            })
+        });
+
+        {#------------回复评论-------#}
+        $('.btn-replay').click(function () {
+            parent_comment = $(this).attr('article_id');
+            console.log(parent_comment);
+            $('.content_text').focus();
+            var curent_user = $(this).attr('user');
+            $('.content_text').val('@' + curent_user);
+            return false
+        });
+
+        $('#add_articledetail').click(function () {
+            console.log('123')
+            $.ajax({
+                url:'/blog/add_articledetail',
+                type:'post',
+                dataType:'JSON',
+                data:{
+                    username:$('.other').attr('article_name'),
+                    id:$('.other').attr('article_id'),
+                    csrfmiddlewaretoken:$('[name="csrfmiddlewaretoken"]').val()
+                },
+                success:function (args) {
+
+                    if (args.status){
+                        location.href=args.msg
+                    }else{
+                        $('.error_detail').text(args.msg);
+                        var f = function(){
+                             $('.error_detail').text("")
+                        };
+                        setTimeout(f,3000)
+                    }
+
+                }
+            })
+        })
+
+
+    </script>
+{% endblock %}
